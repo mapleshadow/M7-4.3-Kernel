@@ -176,11 +176,36 @@ extern uint8_t touchscreen_is_on(void)
 }
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
 #define BACK_BUTTON		250
 #define HOME_BUTTON		818
 #define MENU_BUTTON		1335
 
 int pwp_switch = 1; // 1 -> pocket wake protection on, 0 - off
+=======
+int s2w_switch = 1;
+int l2m_switch = 1;
+int l2w_switch = 0;
+int dt2w_switch = 1;
+int pocket_detect = 1;
+int s2w_wakestat = 0;
+int s2w_hist[2] = {0, 0};
+cputime64_t s2w_time[2] = {0, 0};
+int l2m_hist[2] = {0, 0};
+cputime64_t l2m_time[2] = {0, 0};
+cputime64_t dt2w_time[2] = {0, 0};
+unsigned int dt2w_x[2] = {0, 0};
+unsigned int dt2w_y[2] = {0, 0};
+int wakesleep_vib = 0;
+int vib_strength = 15;
+static int break_longtap_count = 0;
+#define S2W_TIMEOUT 350
+#define L2M_TIMEOUT 300
+#define DT2W_TIMEOUT_MAX 275
+#define DT2W_TIMEOUT_MIN 150
+#define DT2W_DELTA 200
+#define L2W_TIMEOUT 50
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 
 int l2m_2_phase = 0; // 0 -> logo used as power off on long tap, and short tap syncs input on/off at same time,  1 -> logo used as full menu button, sync on/off events separately
 
@@ -232,6 +257,7 @@ int sweep2wake_buttonset(const char * button_name) {
 	strncpy(temp_button_name,button_name,1);
 	temp_button_name[1] = '\0';
 
+<<<<<<< HEAD
 	for (i = 0; i < sizeof(buttons)/sizeof(button); i++)
 	{
 		strncpy(temp_button_name_from_array,buttons[i].name,1);
@@ -239,6 +265,13 @@ int sweep2wake_buttonset(const char * button_name) {
 
 		if (strcmp(temp_button_name,temp_button_name_from_array) == 0)
 			future_button = buttons[i].x;
+=======
+	if (!pocket_mode || pocket_detect == 0) {
+		if (wakesleep_vib) {
+		        vibrate(vib_strength);
+			wakesleep_vib = 0;
+		}
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 
 		temp_button_name_from_array[0] = tolower(temp_button_name_from_array[0]);
 
@@ -358,6 +391,7 @@ static void sweep2wake_longtap_count(struct work_struct * sweep2wake_longtap_cou
 		}
 		msleep(3);
 	}
+<<<<<<< HEAD
 	if (!break_longtap_count)
 	{
 		if (scr_suspended == false && l2m_switch == 1 && ( l2m_2_phase == 1 || (s2w_switch == 0 && h2w_switch == 0) ))
@@ -386,6 +420,26 @@ static void sweep2wake_longtap_count(struct work_struct * sweep2wake_longtap_cou
 				input_sync(sweep2wake_pwrdev);
 				msleep(100);
 			}
+=======
+	if (!break_longtap_count) {
+		int pocket_mode = 0;
+		
+		time_count = 0;
+
+		// printk(KERN_INFO "[L2W] sending event KEY_POWER 1\n");
+
+		if (pocket_detect == 1)
+			pocket_mode = power_key_check_in_pocket();
+
+		if (!pocket_mode || pocket_detect == 0) {
+			vibrate(vib_strength);
+			input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 1);
+			input_sync(sweep2wake_pwrdev);
+			msleep(100);
+			input_event(sweep2wake_pwrdev, EV_KEY, KEY_POWER, 0);
+			input_sync(sweep2wake_pwrdev);
+			msleep(100);
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 		}
 	}
 	mutex_unlock(&longtap_count_lock);
@@ -2023,12 +2077,16 @@ static ssize_t synaptics_sweep2wake_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	size_t count = 0;
+<<<<<<< HEAD
 
 	if (s2w_switch == s2w_temp )
 		count += sprintf(buf, "%d\n", s2w_switch);
 	else
 		count += sprintf(buf, "%d->%d\n", s2w_switch, s2w_temp);
 
+=======
+	count += sprintf(buf, "%d\n", s2w_switch);
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	return count;
 }
 
@@ -2061,12 +2119,16 @@ static ssize_t synaptics_home2wake_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	size_t count = 0;
+<<<<<<< HEAD
 
 	if (h2w_switch == h2w_temp )
 		count += sprintf(buf, "%d\n", h2w_switch);
 	else
 		count += sprintf(buf, "%d->%d\n", h2w_switch, h2w_temp);
 
+=======
+	count += sprintf(buf, "%d\n", dt2w_switch);
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	return count;
 }
 
@@ -2103,9 +2165,13 @@ static ssize_t synaptics_pocket_detect_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	size_t count = 0;
+<<<<<<< HEAD
 
 	count += sprintf(buf, "%d\n", pwp_switch);
 
+=======
+	count += sprintf(buf, "%d\n", l2m_switch);
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	return count;
 }
 
@@ -2133,12 +2199,16 @@ static ssize_t synaptics_logo2menu_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	size_t count = 0;
+<<<<<<< HEAD
 
 	if (l2m_switch == l2m_temp )
 		count += sprintf(buf, "%d\n", l2m_switch);
 	else
 		count += sprintf(buf, "%d->%d\n", l2m_switch, l2m_temp);
 
+=======
+	count += sprintf(buf, "%d\n", l2w_switch);
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	return count;
 }
 
@@ -2170,9 +2240,13 @@ static ssize_t synaptics_logo_delay_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
 	size_t count = 0;
+<<<<<<< HEAD
 
 	count += sprintf(buf, "%d\n", logo_delay_switch);
 
+=======
+	count += sprintf(buf, "%d\n", pocket_detect);
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	return count;
 }
 
@@ -2195,6 +2269,33 @@ static ssize_t synaptics_logo_delay_dump(struct device *dev,
 static DEVICE_ATTR(logo_delay, (S_IWUSR|S_IRUGO),
 	synaptics_logo_delay_show, synaptics_logo_delay_dump);
 
+<<<<<<< HEAD
+=======
+
+
+
+
+static ssize_t synaptics_vib_strength_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+	count += sprintf(buf, "%d\n", vib_strength);
+	return count;
+}
+
+static ssize_t synaptics_vib_strength_dump(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
+{
+	sscanf(buf, "%d ",&vib_strength);
+	if (vib_strength < 0 || vib_strength > 60)
+		vib_strength = 15;
+
+	return count;
+}
+
+static DEVICE_ATTR(vib_strength, 0666,
+	synaptics_vib_strength_show, synaptics_vib_strength_dump);
+
+#endif
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 
 static ssize_t synaptics_l2m_2_phase_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -2328,6 +2429,12 @@ static int synaptics_touch_sysfs_init(void)
 		return ret;
 	}
 
+	ret = sysfs_create_file(android_touch_kobj, &dev_attr_vib_strength.attr);
+	if (ret) {
+		printk(KERN_ERR "%s: sysfs_create_file failed\n", __func__);
+	return ret;
+	} 
+
 #endif
 #ifdef SYN_WIRELESS_DEBUG
 	ret= gpio_request(ts->gpio_irq, "synaptics_attn");
@@ -2383,6 +2490,7 @@ static void synaptics_touch_sysfs_remove(void)
 	sysfs_remove_file(android_touch_kobj, &dev_attr_l2m_2_phase.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_sleep_wake_vibration_time.attr);
 	sysfs_remove_file(android_touch_kobj, &dev_attr_pocket_detect.attr);
+	sysfs_remove_file(android_touch_kobj, &dev_attr_vib_strength.attr);
 #endif
 #ifdef SYN_WIRELESS_DEBUG
 	sysfs_remove_file(android_touch_kobj, &dev_attr_enabled.attr);
@@ -2505,12 +2613,21 @@ static int last_touch_position_y = 0;
 static int logo_press_state = 0;
 static unsigned long logo_last_pressed_time;
 
+<<<<<<< HEAD
 static int report_htc_logo_area(int x, int y)
 {
     if (s2w_switch > 0 && scr_suspended == true) return 0; // s2w should wake on logo
+=======
+		if (s2w_switch == 1 && (s2w_hist[1] == 1 && s2w_hist[0] == 2) && ((s2w_time[0]-s2w_time[1]) < S2W_TIMEOUT)) {
+                        // printk("[S2W]: OFF->ON\n");
+			wakesleep_vib=1;
+                        sweep2wake_pwrtrigger();
+		}
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 
     if (h2w_switch < 2 && l2m_switch == 0) return 0; // logo2sleep and logo2menu is both off, so don't report logo area!
 
+<<<<<<< HEAD
     if (last_touch_position_x>600 && last_touch_position_x<1200)
     {
 		int below_y = 2835;
@@ -2518,6 +2635,12 @@ static int report_htc_logo_area(int x, int y)
 		{
 			// if screen is suspended we can use a bigger area for Logo tapping (easier wake)
 			below_y = 2750;
+=======
+		if ((s2w_hist[1] == 2 && s2w_hist[0] == 1) && ((s2w_time[0]-s2w_time[1]) < S2W_TIMEOUT)) {
+                        // printk("[S2W]: ON->OFF\n");
+			wakesleep_vib=1;
+                        sweep2wake_pwrtrigger();
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 		}
 
 		if (last_touch_position_y > below_y)
@@ -2925,6 +3048,7 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 
 						if (ts->htc_event == SYN_AND_REPORT_TYPE_A) {
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
 							last_touch_position_x = finger_data[i][0];
 							last_touch_position_y = finger_data[i][1];
 							report_ret = report_htc_logo_area(last_touch_position_x,last_touch_position_y);
@@ -2935,6 +3059,18 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 								finger_data[i][1] = -10;
 							}
 #endif
+=======
+						   last_touch_position_x = finger_data[i][0];
+						   last_touch_position_y = finger_data[i][1];
+
+						   if (!report_htc_logo_area(last_touch_position_x,last_touch_position_y)) {
+							if (scr_suspended == true) {
+								finger_data[i][0] = -10;
+								finger_data[i][1] = -10; 
+							}
+#endif
+
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 							if (ts->support_htc_event) {
 								input_report_abs(ts->input_dev, ABS_MT_AMPLITUDE,
 									finger_data[i][3] << 16 | finger_data[i][2]);
@@ -2942,6 +3078,7 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 									(finger_pressed == 0) << 31 |
 									finger_data[i][0] << 16 | finger_data[i][1]);
 							}
+<<<<<<< HEAD
 							input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, i);
 							input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR,
 								finger_data[i][3]);
@@ -3025,6 +3162,34 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 								finger_data[i][1] = -10;
 							}
 #endif
+=======
+								input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, i);
+								input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR,
+									finger_data[i][3]);
+								input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR,
+									finger_data[i][2]);
+								input_report_abs(ts->input_dev, ABS_MT_PRESSURE,
+									finger_data[i][2]);
+								input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
+									finger_data[i][0]);
+								input_report_abs(ts->input_dev, ABS_MT_POSITION_Y,
+									finger_data[i][1]);
+								input_mt_sync(ts->input_dev);
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+						   }
+#endif 							
+						} else if (ts->htc_event == SYN_AND_REPORT_TYPE_B) {
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+						   last_touch_position_x = finger_data[i][0];
+						   last_touch_position_y = finger_data[i][1];
+						   if (!report_htc_logo_area(last_touch_position_x,last_touch_position_y)) {
+							if (scr_suspended == true) {
+								finger_data[i][0] = -10;
+								finger_data[i][1] = -10; 
+							}
+#endif 
+
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 							if (ts->support_htc_event) {
 								input_report_abs(ts->input_dev, ABS_MT_AMPLITUDE,
 									finger_data[i][3] << 16 | finger_data[i][2]);
@@ -3032,6 +3197,7 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 									(finger_pressed == 0) << 31 |
 									finger_data[i][0] << 16 | finger_data[i][1]);
 							}
+<<<<<<< HEAD
 							input_mt_slot(ts->input_dev, i);
 							input_mt_report_slot_state(ts->input_dev, MT_TOOL_FINGER,
 							1);
@@ -3102,10 +3268,33 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 										sweep2wake_longtap_count_trigger();
 									}
 								}
+=======
+
+
+								input_mt_slot(ts->input_dev, i);
+								input_mt_report_slot_state(ts->input_dev, MT_TOOL_FINGER,
+								1);
+								input_report_abs(ts->input_dev, ABS_MT_TOUCH_MAJOR,
+									finger_data[i][3]);
+								input_report_abs(ts->input_dev, ABS_MT_WIDTH_MAJOR,
+									finger_data[i][2]);
+								input_report_abs(ts->input_dev, ABS_MT_PRESSURE,
+									finger_data[i][2]);
+								input_report_abs(ts->input_dev, ABS_MT_POSITION_X,
+									finger_data[i][0]);
+								input_report_abs(ts->input_dev, ABS_MT_POSITION_Y,
+									finger_data[i][1]);
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+						   }  else {
+        						if (l2w_switch == 1) {
+								logo2wake_func();
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 							}
+						   }
 #endif
 						} else if (ts->htc_event == SYN_AND_REPORT_TYPE_HTC) {
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
 							last_touch_position_x = finger_data[i][0];
 							last_touch_position_y = finger_data[i][1];
 							report_ret = report_htc_logo_area(last_touch_position_x,last_touch_position_y);
@@ -3114,6 +3303,14 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 							if (ts_is_on == 0) {
 								finger_data[i][0] = -10;
 								finger_data[i][1] = -10;
+=======
+						   last_touch_position_x = finger_data[i][0];
+						   last_touch_position_y = finger_data[i][1];
+						   if (!report_htc_logo_area(last_touch_position_x,last_touch_position_y)) {
+							if (scr_suspended == true) {
+								finger_data[i][0] = -10;
+								finger_data[i][1] = -10; 
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 							}
 #endif
 							input_report_abs(ts->input_dev, ABS_MT_TRACKING_ID, i);
@@ -3123,6 +3320,7 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 								(finger_pressed == 0) << 31 |
 								finger_data[i][0] << 16 | finger_data[i][1]);
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
 							} else
 							{
 								printk("[L2M] till in area %d %d",last_touch_position_x,last_touch_position_y);
@@ -3181,6 +3379,10 @@ static void synaptics_ts_finger_func(struct synaptics_ts_data *ts)
 								}
 							}
 #endif
+=======
+						   }							
+#endif 
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 						}
 						x_pos[i] = finger_data[i][0];
 						y_pos[i] = finger_data[i][1];
@@ -4471,6 +4673,7 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 	uint8_t data = 0, update = 0;
 	struct synaptics_ts_data *ts = i2c_get_clientdata(client);
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
 	if (h2w_switch > 0 || s2w_switch > 0) {
 		enable_irq_wake(client->irq);
 		printk(KERN_INFO "[sweep2wake]: suspend but keep interupt wake going.\n");
@@ -4479,6 +4682,11 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 		//	pm8xxx_led_current_set(sweep2wake_leddev, 0);
 			printk(KERN_INFO "[sweep2wake]: deactivated button backlight.\n");
 		}
+=======
+	if (s2w_switch == 1 || dt2w_switch == 1 || l2w_switch == 1) {
+		//screen off, enable_irq_wake
+		enable_irq_wake(client->irq);
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	}
 #endif
 	printk(KERN_INFO "[TP] %s: enter\n", __func__);
@@ -4698,7 +4906,12 @@ static int synaptics_ts_suspend(struct i2c_client *client, pm_message_t mesg)
 			ts->lpm_power(1);
 	}
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
     }
+=======
+	}
+	scr_suspended = true;
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 #endif
 	scr_suspended = true;
 	return 0;
@@ -4708,17 +4921,30 @@ static int synaptics_ts_resume(struct i2c_client *client)
 {
 	int ret, i;
 	struct synaptics_ts_data *ts = i2c_get_clientdata(client);
+<<<<<<< HEAD
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
         if (h2w_switch > 0 || s2w_switch > 0) {
                 //screen on, disable_irq_wake
                 disable_irq_wake(client->irq);
         }
+=======
+
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE  
+        //screen on, disable_irq_wake
+	if (s2w_switch == 1 || dt2w_switch == 1 || l2w_switch == 1)
+		disable_irq_wake(client->irq);
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 #endif
 	printk(KERN_INFO "[TP] %s: enter\n", __func__);
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
         if (h2w_switch == 0 && s2w_switch == 0) {
 #endif
+=======
+        if ((s2w_switch == 2 || s2w_switch == 0) && dt2w_switch == 0 && l2w_switch == 0) {
+#endif 
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	if (ts->power) {
 		ts->power(1);
 		hr_msleep(100);
@@ -4737,10 +4963,16 @@ static int synaptics_ts_resume(struct i2c_client *client)
 		if (ret < 0)
 			i2c_syn_error_handler(ts, ts->i2c_err_handler_en, "wake up", __func__);
 	}
+<<<<<<< HEAD
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
         }
 #endif
+=======
+#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+        }
+#endif 
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	if (ts->htc_event == SYN_AND_REPORT_TYPE_A) {
 		if (ts->support_htc_event) {
 			input_report_abs(ts->input_dev, ABS_MT_AMPLITUDE, 0);
@@ -4779,8 +5011,13 @@ static int synaptics_ts_resume(struct i2c_client *client)
 	}
 
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
         if (h2w_switch == 0 && s2w_switch == 0) {
 #endif
+=======
+        if ((s2w_switch == 2 || s2w_switch == 0) && dt2w_switch == 0 && l2w_switch == 0) {
+#endif 
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	if (ts->use_irq) {
 		enable_irq(client->irq);
 		ts->irq_enabled = 1;
@@ -4788,6 +5025,7 @@ static int synaptics_ts_resume(struct i2c_client *client)
 	else
 		hrtimer_start(&ts->timer, ktime_set(1, 0), HRTIMER_MODE_REL);
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_SWEEP2WAKE
+<<<<<<< HEAD
 	}
 
 	if (h2w_switch_changed)
@@ -4800,6 +5038,11 @@ static int synaptics_ts_resume(struct i2c_client *client)
 	}
 #endif
         scr_suspended = false;
+=======
+        }
+        scr_suspended = false;
+#endif 
+>>>>>>> 5049dc7... fix touchscreen registering input during calls, add sysfs entry for vibration strength
 	return 0;
 }
 
